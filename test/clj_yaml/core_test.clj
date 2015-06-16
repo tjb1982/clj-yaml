@@ -1,7 +1,19 @@
 (ns clj-yaml.core-test
-  (:use clojure.test)
-  (:use clj-yaml.core)
+  (:require [clojure.java.io :as io])
+  (:use [clojure.test]
+        [clojure.test.junit]
+        [clj-yaml.core])
   (:import [java.util Date]))
+
+(use-fixtures :once
+  (fn [handler]
+    (if-let [out (System/getenv "CIRCLE_TEST_REPORTS")]
+      (fn [& args]
+        (with-open [writer (io/writer (str out "/" *ns* ".xml"))]
+          (binding [*test-out* writer]
+            (with-junit-output
+              (apply handler args)))))
+      handler)))
 
 (def nested-hash-yaml
   "root:\n  childa: a\n  childb: \n    grandchild: \n      greatgrandchild: bar\n")
