@@ -1,7 +1,7 @@
 (ns clj-yaml.core
   (:require [flatland.ordered.map :refer (ordered-map)]
             [flatland.ordered.set :refer (ordered-set)])
-  (:import (org.yaml.snakeyaml Yaml DumperOptions DumperOptions$FlowStyle)
+  (:import (org.yaml.snakeyaml Yaml DumperOptions DumperOptions$FlowStyle DumperOptions$ScalarStyle)
            (org.yaml.snakeyaml.constructor Constructor SafeConstructor)
            (org.yaml.snakeyaml.representer Representer)
            (clj_yaml MarkedConstructor)
@@ -12,10 +12,22 @@
    :block DumperOptions$FlowStyle/BLOCK
    :flow DumperOptions$FlowStyle/FLOW})
 
+(def scalar-styles
+  {:double-quoted DumperOptions$ScalarStyle/DOUBLE_QUOTED
+   :single-quoted DumperOptions$ScalarStyle/SINGLE_QUOTED
+   :literal DumperOptions$ScalarStyle/LITERAL
+   :plain DumperOptions$ScalarStyle/PLAIN
+   :folded DumperOptions$ScalarStyle/FOLDED})
+
 (defn make-dumper-options
-  [& {:keys [flow-style]}]
-  (doto (DumperOptions.)
-    (.setDefaultFlowStyle (flow-styles flow-style))))
+  [dumper-opts]
+  (let [dumper-options (DumperOptions.)
+        {:keys [flow-style scalar-style]} dumper-opts]
+    (when flow-style
+      (.setDefaultFlowStyle dumper-options (flow-styles flow-style)))
+    (when scalar-style
+      (.setDefaultScalarStyle dumper-options (scalar-styles scalar-style)))
+    dumper-options))
 
 (defn make-yaml
   "Make a yaml encoder/decoder with some given options."
@@ -25,7 +37,7 @@
             (if mark (MarkedConstructor.) (SafeConstructor.)))
         ;; TODO: unsafe marked constructor
         dumper (if dumper-options
-                 (make-dumper-options :flow-style (:flow-style dumper-options))
+                 (make-dumper-options dumper-options)
                  (DumperOptions.))]
     (Yaml. constructor (Representer.) dumper)))
 

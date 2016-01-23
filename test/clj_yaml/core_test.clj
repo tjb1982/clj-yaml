@@ -149,12 +149,25 @@ the-bin: !!binary 0101")
     (is (= 1 (-> parsed unmark first :end :line)))
     (is (= 5 (-> parsed unmark first :end :column)))))
 
-(deftest dump-opts
+(deftest dumper-options-flow
   (let [data [{:age 33 :name "jon"} {:age 44 :name "boo"}]]
     (is (= "- age: 33\n  name: jon\n- age: 44\n  name: boo\n"
            (generate-string data :dumper-options {:flow-style :block})))
     (is (= "[{age: 33, name: jon}, {age: 44, name: boo}]\n"
            (generate-string data :dumper-options {:flow-style :flow})))))
+
+(deftest dumper-options-scalar
+  (let [data [{:age 33 :name "jon"}]]
+    (is (= "- \"age\": !!int \"33\"\n  \"name\": \"jon\"\n"
+           (generate-string data :dumper-options {:scalar-style :double-quoted})))
+    (is (= "- 'age': !!int '33'\n  'name': 'jon'\n"
+           (generate-string data :dumper-options {:scalar-style :single-quoted})))
+    (is (=  "- \"age\": !!int |-\n    33\n  \"name\": |-\n    jon\n"
+           (generate-string data :dumper-options {:scalar-style :literal})))
+    (is (=  "- {age: 33, name: jon}\n"
+           (generate-string data :dumper-options {:scalar-style :plain})))
+    (is (= "- \"age\": !!int >-\n    33\n  \"name\": >-\n    jon\n"
+           (generate-string data :dumper-options {:scalar-style :folded})))))
 
 (deftest parse-time
   (testing "clj-time parses timestamps with more than millisecond precision correctly."
