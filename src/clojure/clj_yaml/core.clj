@@ -130,3 +130,9 @@
 (defn parse-string
   [string & {:keys [unsafe mark keywords] :or {keywords true}}]
   (decode (.load (make-yaml :unsafe unsafe :mark mark) string) keywords))
+
+(defn parse-all
+  [string & {:keys [unsafe mark keywords] :or {keywords true}}]
+  (map #(decode % keywords)
+       (.loadAll (make-yaml :unsafe unsafe :mark mark) string)))
+

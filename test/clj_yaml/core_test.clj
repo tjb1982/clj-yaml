@@ -180,3 +180,13 @@ the-bin: !!binary 0101")
         [first second] (parsed :items)]
     (= (keys first) '("part_no" "descrip" "price" "quantity"))
     (= (keys second)'("part_no" "descrip" "price" "quantity" "owners"))))
+
+(deftest multi-doc
+  (testing "Multi-doc stream is a collection"
+    (let [parsed (parse-all "
+- this is a test
+---
+- this is a different document
+                              ")]
+      (-> parsed second first (= "this is a different document")))))
+
